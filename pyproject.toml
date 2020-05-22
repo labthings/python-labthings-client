@@ -1,8 +1,12 @@
 [tool.poetry]
 name = "labthings-client"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "A simple Python client for LabThings devices"
+authors = ["jtc42 <jtc9242@gmail.com>"]
+classifiers = [
+    "Topic :: System :: Hardware",
+    "Topic :: Internet :: WWW/HTTP"
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
