@@ -1,8 +1,8 @@
 import requests
 from ipaddress import IPv4Address, IPv6Address
 
-from utilities import AttributeDict
-from affordances import Property, Action
+from .utilities import AttributeDict
+from .affordances import Property, Action
 
 class FoundThing:
     def __init__(self, name, addresses, port, path, protocol="http"):

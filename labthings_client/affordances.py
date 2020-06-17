@@ -1,8 +1,8 @@
 import requests
 
-from td_parsers import find_self_link
-from json_typing import json_to_typing_basic
-from tasks import ActionTask
+from .td_parsers import find_self_link
+from .json_typing import json_to_typing_basic
+from .tasks import ActionTask
 
 class Affordance:
     def __init__(self, affordance_description: dict, base_url: str = ""):
