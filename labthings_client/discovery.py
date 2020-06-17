@@ -5,11 +5,11 @@ import time
 
 from pprint import pprint
 
-from thing import FoundThing
+from .thing import FoundThing
 
 class Browser:
-    def __init__(self, service="labthing", protocol="tcp"):
-        self.service_record = f"_{service}._{protocol}.local."
+    def __init__(self, types=["labthing", "webthing"], protocol="tcp"):
+        self.service_types = [f"_{service_type}._{protocol}.local." for service_type in types]
 
         self.services = {}
 
@@ -17,7 +17,7 @@ class Browser:
         self.remove_service_callbacks = set()
 
         self._zeroconf = Zeroconf()
-        self._browser = None
+        self._browsers = set()
 
     def __enter__(self):
         self.open()
@@ -27,7 +27,8 @@ class Browser:
         return self.close()
 
     def open(self):
-        self._browser = ServiceBrowser(self._zeroconf, self.service_record, self)
+        for service_type in self.service_types:
+            self._browsers.add(ServiceBrowser(self._zeroconf, service_type, self))
         return self
 
     def close(self, *args, **kwargs):
