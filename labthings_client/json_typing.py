@@ -1,6 +1,7 @@
 from typing import Any
 import copy
 
+
 def json_to_typing_basic(schema: dict):
 
     # Copy so we don't start popping keys from the main description
@@ -24,10 +25,13 @@ def json_to_typing_basic(schema: dict):
         python_type = str
     elif json_type == "object":
         python_type = dict
-        description["properties"] = {k: json_to_typing_basic(v) for k, v in working_schema.pop("properties", {}).items()}
+        description["properties"] = {
+            k: json_to_typing_basic(v)
+            for k, v in working_schema.pop("properties", {}).items()
+        }
     elif json_type == "array":
         python_type = list
-        description["items"] = json_to_typing_basic(working_schema.pop("items",{}))
+        description["items"] = json_to_typing_basic(working_schema.pop("items", {}))
 
     description["type"] = python_type
 

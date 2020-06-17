@@ -1,5 +1,6 @@
 import requests
 
+
 class ActionTask:
     def __init__(self, task_description: dict):
         self.task_description = task_description
