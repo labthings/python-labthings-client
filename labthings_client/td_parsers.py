@@ -1,6 +1,5 @@
 def find_self_link(links_list: list):
     return_link = ""
-    print(links_list)
     # Look for an explicit "self" link
     for link in links_list:
         if link.get("rel") == "self":
