@@ -5,11 +5,14 @@ import time
 
 from pprint import pprint
 
-from .thing import FoundThing
+from .thing import LabThing, WebThing
+
 
 class Browser:
     def __init__(self, types=["labthing", "webthing"], protocol="tcp"):
-        self.service_types = [f"_{service_type}._{protocol}.local." for service_type in types]
+        self.service_types = [
+            f"_{service_type}._{protocol}.local." for service_type in types
+        ]
 
         self.services = {}
 
@@ -23,7 +26,7 @@ class Browser:
         self.open()
         return self
 
-    def __exit__(self ,type, value, traceback):
+    def __exit__(self, service_type, value, traceback):
         return self.close()
 
     def open(self):
@@ -35,16 +38,16 @@ class Browser:
         logging.info(f"Closing browser {self}")
         return self._zeroconf.close(*args, **kwargs)
 
-    def remove_service(self, zeroconf, type, name):
-        service = zeroconf.get_service_info(type, name)
+    def remove_service(self, zeroconf, service_type, name):
+        service = zeroconf.get_service_info(service_type, name)
         if name in self.services:
             for callback in self.remove_service_callbacks:
                 callback(self.services[name])
             del self.services[name]
 
-    def add_service(self, zeroconf, type, name):
-        service = zeroconf.get_service_info(type, name)
-        self.services[name] = parse_service(service)
+    def add_service(self, zeroconf, service_type, name):
+        service = zeroconf.get_service_info(service_type, name)
+        self.services[name] = parse_service(service, service_type)
         for callback in self.add_service_callbacks:
             callback(self.services[name])
 
@@ -71,7 +74,7 @@ class ThingBrowser(Browser):
         self._things = set()
         self.add_add_service_callback(self.add_service_to_things)
         self.add_remove_service_callback(self.remove_service_from_things)
-        
+
     @property
     def things(self):
         return list(self._things)
@@ -92,12 +95,14 @@ class ThingBrowser(Browser):
             time.sleep(0.1)
         return self.things[0]
 
-def parse_service(service):
+
+def parse_service(service, service_type):
     properties = {}
     for k, v in service.properties.items():
         properties[k.decode()] = v.decode()
 
     return {
+        "type": service_type.split(".")[0].strip("_"),
         "address": ipaddress.ip_address(service.address),
         "addresses": {ipaddress.ip_address(a) for a in service.addresses},
         "port": service.port,
@@ -108,9 +113,26 @@ def parse_service(service):
 
 
 def service_to_thing(service: dict):
-    if not ("addresses" in service or "port" in service or "path" in service.get("properties", {})):
+    if not (
+        "addresses" in service
+        or "port" in service
+        or "path" in service.get("properties", {})
+    ):
         raise KeyError("Invalid service. Missing keys.")
-    return FoundThing(service.get("name"), service.get("addresses"), service.get("port"), service.get("properties").get("path"))
+
+    if service.get("type") == "webthing":
+        thing_class = WebThing
+    elif service.get("type") == "labthing":
+        thing_class = LabThing
+    else:
+        raise KeyError("Invalid service. Invalid service type.")
+
+    return thing_class(
+        service.get("name"),
+        service.get("addresses"),
+        service.get("port"),
+        service.get("properties").get("path"),
+    )
 
 
 if __name__ == "__main__":

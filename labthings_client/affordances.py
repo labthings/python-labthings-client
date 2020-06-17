@@ -4,8 +4,10 @@ from .td_parsers import find_self_link
 from .json_typing import json_to_typing_basic
 from .tasks import ActionTask
 
+
 class Affordance:
-    def __init__(self, affordance_description: dict, base_url: str = ""):
+    def __init__(self, title, affordance_description: dict, base_url: str = ""):
+        self.title = title
         self.base_url = base_url.strip("/")
         self.affordance_description = affordance_description
 
@@ -14,24 +16,23 @@ class Affordance:
 
         self.description = self.affordance_description.get("description")
 
-    
     def find_verbs(self):
         """Verify available HTTP methods
 
         Returns:
             [list] -- List of HTTP verb strings
         """
-        return requests.options(self.self_url).headers['allow'].split(", ")
+        return requests.options(self.self_url).headers["allow"].split(", ")
 
 
 class Property(Affordance):
-    def __init__(self, affordance_description: dict, base_url: str = ""):
-        Affordance.__init__(self, affordance_description, base_url=base_url)
+    def __init__(self, title, affordance_description: dict, base_url: str = ""):
+        Affordance.__init__(self, title, affordance_description, base_url=base_url)
 
         self.read_only = self.affordance_description.get("readOnly")
         self.write_only = self.affordance_description.get("writeOnly")
 
-    def __call__(self, *args, **kwargs): 
+    def __call__(self, *args, **kwargs):
         return self.get(*args, **kwargs)
 
     def get(self):
@@ -70,24 +71,49 @@ class Property(Affordance):
             raise AttributeError("Can't delete attribute, is read-only")
 
 
+class MozillaProperty(Property):
+    def _post_process(self, value):
+        if isinstance(value, dict) and self.title in value:
+            return value.get(self.title)
+
+    def _pre_process(self, value):
+        return {self.title: value}
+
+    def get(self):
+        return self._post_process(Property.get(self))
+
+    def put(self, value):
+        return self._post_process(Property.put(self, self._pre_process(value)))
+
+    def post(self, value):
+        return self._post_process(Property.post(self, self._pre_process(value)))
+
+    def delete(self):
+        return self._post_process(Property.delete(self))
+
+
 class Action(Affordance):
-    def __init__(self, affordance_description: dict, base_url: str = ""):
-        Affordance.__init__(self, affordance_description, base_url=base_url)
+    def __init__(self, title, affordance_description: dict, base_url: str = ""):
+        Affordance.__init__(self, title, affordance_description, base_url=base_url)
 
         self.args = json_to_typing_basic(self.affordance_description.get("input", {}))
 
-    def __call__(self, *args, **kwargs): 
+    def __call__(self, *args, **kwargs):
         return self.post(*args, **kwargs)
 
     def post(self, *args, **kwargs):
 
         # Only accept a single positional argument, at most
         if len(args) > 1:
-            raise ValueError("If passing parameters as a positional argument, the only argument must be a single dictionary")
+            raise ValueError(
+                "If passing parameters as a positional argument, the only argument must be a single dictionary"
+            )
 
         # Single positional argument MUST be a dictionary
         if args and not isinstance(args[0], dict):
-            raise TypeError("If passing parameters as a positional argument, the argument must be a dictionary")
+            raise TypeError(
+                "If passing parameters as a positional argument, the argument must be a dictionary"
+            )
 
         # Use positional dictionary as parameters base
         if args:

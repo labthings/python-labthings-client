@@ -2,9 +2,10 @@ import requests
 from ipaddress import IPv4Address, IPv6Address
 
 from .utilities import AttributeDict
-from .affordances import Property, Action
+from .affordances import Property, MozillaProperty, Action
 
-class FoundThing:
+
+class Thing:
     def __init__(self, name, addresses, port, path, protocol="http"):
         self.name = name
         self.addresses = addresses
@@ -40,8 +41,18 @@ class FoundThing:
 
     def update(self):
         self.thing_description = self.fetch_description()
-        self.properties = AttributeDict({k: Property(v, base_url = self.base) for k, v in self.thing_description.get("properties", {}).items()})
-        self.actions = AttributeDict({k: Action(v, base_url = self.base) for k, v in self.thing_description.get("actions", {}).items()})
+        self.properties = AttributeDict(
+            {
+                k: Property(k, v, base_url=self.base)
+                for k, v in self.thing_description.get("properties", {}).items()
+            }
+        )
+        self.actions = AttributeDict(
+            {
+                k: Action(k, v, base_url=self.base)
+                for k, v in self.thing_description.get("actions", {}).items()
+            }
+        )
 
     def fetch_description(self):
         for url in self.urls:
@@ -50,3 +61,24 @@ class FoundThing:
                 return response.json()
         # If we reach this line, no URL gave a valid JSON response
         raise RuntimeError("No valid Thing Description found")
+
+
+class WebThing(Thing):
+    def update(self):
+        self.thing_description = self.fetch_description()
+        self.properties = AttributeDict(
+            {
+                k: MozillaProperty(k, v, base_url=self.base,)
+                for k, v in self.thing_description.get("properties", {}).items()
+            }
+        )
+        self.actions = AttributeDict(
+            {
+                k: Action(k, v, base_url=self.base)
+                for k, v in self.thing_description.get("actions", {}).items()
+            }
+        )
+
+
+class LabThing(Thing):
+    pass
