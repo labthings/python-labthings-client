@@ -1,3 +1,13 @@
+# [0.2.0](https://github.com/labthings/python-labthings-client/compare/v0.1.1...v0.2.0) (2020-08-21)
+
+
+* 0.1.2 ([d911d8a](https://github.com/labthings/python-labthings-client/commit/d911d8a))
+* Added full support for Mozilla Web Things ([dc262d7](https://github.com/labthings/python-labthings-client/commit/dc262d7))
+* Code formatting ([e789e0a](https://github.com/labthings/python-labthings-client/commit/e789e0a))
+* Fix #3 ([47b7b09](https://github.com/labthings/python-labthings-client/commit/47b7b09)), closes [#3](https://github.com/labthings/python-labthings-client/issues/3)
+* Update README.md ([4a5cb86](https://github.com/labthings/python-labthings-client/commit/4a5cb86))
+
+
 # [0.1.1](https://github.com/labthings/python-labthings-client/compare/v0.1.0...v0.1.1) (2020-06-17)
 
 
