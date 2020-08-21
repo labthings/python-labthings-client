@@ -47,16 +47,20 @@ class Property(Affordance):
         return self.put(*args, **kwargs)
 
     def put(self, value):
+        if value is None:
+            value = {}
         if not self.read_only:
-            r = requests.put(self.self_url, json=value or {})
+            r = requests.put(self.self_url, json=value)
             r.raise_for_status()
             return r.json()
         else:
             raise AttributeError("Can't set attribute, is read-only")
 
     def post(self, value):
+        if value is None:
+            value = {}
         if not self.read_only:
-            r = requests.post(self.self_url, json=value or {})
+            r = requests.post(self.self_url, json=value)
             r.raise_for_status()
             return r.json()
         else:
